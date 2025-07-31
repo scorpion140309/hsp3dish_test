@@ -198,7 +198,7 @@ Module.expectedDataFileDownloads++;
     }
     var PACKAGE_NAME = 'hsp3dish_test.data';
     var REMOTE_PACKAGE_NAME = (Module['filePackagePrefixURL'] || '') + 'hsp3dish_test.data';
-    var REMOTE_PACKAGE_SIZE = 1344;
+    var REMOTE_PACKAGE_SIZE = 1373;
     var PACKAGE_UUID = '51f84d03-0c74-4552-ac13-924e79e76977';
   
     function fetchRemotePackage(packageName, packageSize, callback, errback) {
@@ -299,7 +299,7 @@ function assert(check, msg) {
       },
     };
 
-      new DataRequest(0, 1344, 0, 0).open('GET', 'hsp3dish_test.ax');
+      new DataRequest(0, 1373, 0, 0).open('GET', 'hsp3dish_test.ax');
 
 
     function processPackageData(arrayBuffer) {

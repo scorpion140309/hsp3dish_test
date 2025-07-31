@@ -3,7 +3,8 @@
 	screen 0,640,480
 	name="title"
 *main
+	something = "20250801"
 	cls 1
 	color 255, 23, 23
-	mes "hsp3dish"
+	mes something
 	stop
