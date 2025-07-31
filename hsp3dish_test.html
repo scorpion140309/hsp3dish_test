@@ -116,7 +116,7 @@
       var statusElement = document.getElementById('status');
       var progressElement = document.getElementById('progress');
       var spinnerElement = document.getElementById('spinner');
-      var sensor_button = 0;
+      var sensor_button = 1;
 
       var Module = {
         INITIAL_MEMORY: 209715200,
@@ -197,7 +197,7 @@ Module.expectedDataFileDownloads++;
     }
     var PACKAGE_NAME = 'hsp3dish_test.data';
     var REMOTE_PACKAGE_NAME = (Module['filePackagePrefixURL'] || '') + 'hsp3dish_test.data';
-    var REMOTE_PACKAGE_SIZE = 2088;
+    var REMOTE_PACKAGE_SIZE = 2686;
     var PACKAGE_UUID = '51f84d03-0c74-4552-ac13-924e79e76977';
   
     function fetchRemotePackage(packageName, packageSize, callback, errback) {
@@ -300,7 +300,7 @@ Module['FS_createPath']('/res', 'shaders', true, true);
       },
     };
 
-      new DataRequest(0, 2088, 0, 0).open('GET', 'hsp3dish_test.ax');
+      new DataRequest(0, 2686, 0, 0).open('GET', 'hsp3dish_test.ax');
 
 
     function processPackageData(arrayBuffer) {
@@ -419,7 +419,7 @@ Module['FS_createPath']('/res', 'shaders', true, true);
 				}
 
     </script>
-    <script async src="hsp3dish-gp.js"></script>
-  <p style="font-size: small; color: rgb(64, 64, 64);">powered by <a href="https://hsp.tv/make/hsp3dish.html" target="_blank">hsp3dish-gp.js</a> / OpenHSP</p>
+    <script async src="hsp3dishw-gp.js"></script>
+  <p style="font-size: small; color: rgb(64, 64, 64);">powered by <a href="https://hsp.tv/make/hsp3dish.html" target="_blank">hsp3dishw-gp.js</a> / OpenHSP</p>
   </body>
 </html>
