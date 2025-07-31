@@ -1,0 +1,337 @@
+;
+; OBAQ上で関節の動作を表現しようと思って作成しました。
+; 検証が不十分でバグなどあるかもしれませんが、お試しいただけたら幸いです。
+;
+; 2015/08/19
+; ・バージョン0.1リリース
+; 2015/08/23
+; ・バージョン0.2リリース
+; ・処理の簡略化とstart.axの軽量化
+; 2015/09/15
+; ・バージョン0.5リリース
+; ・マウスドラッグによる物体移動機能を追加
+; 2015/09/25
+; ・バージョン0.6リリース
+; ・リセット機能を追加
+; ・重力設定機能を追加
+; ・プログラムサイズ削減作業
+; 2015/10/11
+; ・バージョン1.0リリース
+; ・微調整
+;
+; 以下、ソース
+;
+
+;#include "hsptv.as"
+#include "obaq.as"
+
+#define ELM_NUM_BODY_PARA	( 4 )
+#define ELM_NUM_JOINT_PARA	( 6 )
+
+#enum e_BODY_ATAMA = 0	; 頭
+#enum e_BODY_MUNE		; 胸
+#enum e_BODY_KOSHI		; 腰
+#enum e_BODY_MOMO_R		; 右腿
+#enum e_BODY_SUNEO_R	; 右脛
+#enum e_BODY_MOMO_L		; 左腿
+#enum e_BODY_SUNEO_L	; 左脛
+#enum e_BODY_JOUWAN_R	; 右上腕
+#enum e_BODY_ZENWAN_R	; 右前腕
+#enum e_BODY_JOUWAN_L	; 左上腕
+#enum e_BODY_ZENWAN_L	; 右前腕
+#enum e_BODY_NUM		; 剛体の数
+
+#enum e_JOINT_SEBONE = 0	; 背骨
+#enum e_JOINT_KUBIE			; 首
+#enum e_JOINT_KOKANSETSU_R	; 右股関節
+#enum e_JOINT_HIZA_R		; 右膝
+#enum e_JOINT_KOKANSETSU_L	; 左股関節
+#enum e_JOINT_HIZA_L		; 左膝
+#enum e_JOINT_KATA_R		; 右肩
+#enum e_JOINT_HIJI_R		; 右肩
+#enum e_JOINT_KATA_L		; 左肩
+#enum e_JOINT_HIJI_L		; 右肩
+#enum e_JOINT_NUM		; 関節の数
+
+#define	YUKA_NUM ( 4 )
+
+*init_world
+
+	; OBAQの初期化
+	qreset
+
+	; 待ち時間
+	my_interval = 12
+
+	; 箱
+	qaddpoly id_box, 4, 20, 60, 0, 8, 8
+	; シーソー(回転のみ)
+	qaddpoly id_seesaw, 4, 30, 105, 0, 24, 2
+	qtype id_seesaw, type_bindX | type_bindY
+	; 地形(固定)
+	group_fix = 2
+	dim ary_id_yuka, YUKA_NUM
+	for i, 0, YUKA_NUM, 1
+		qaddpoly ary_id_yuka(i), 4, 100 + i * 10, 110 - i * 5, 0, 70 - i * 20, 5, 0, group_fix
+		qtype ary_id_yuka(i), type_bind
+	next
+
+	; 人型モデルのコリジョングループ
+	; 自己干渉しないように設定する
+	mygroup = 256
+
+	; 人型モデルのパラメータ
+
+	; 剛体
+	dim ary_body_id, 10
+	; 関節
+	dim ary_joint_id, 10			; 関節のID
+	dim ary_joint_body, 2, 10		; 関節を共有する2つの剛体のID
+	ddim ary_joint_local_X, 2, 10	; それぞれの剛体と関節の相対位置(X方向)
+	ddim ary_joint_local_Y, 2, 10	; それぞれの剛体と関節の相対位置(Y方向)
+	ddim ary_joint_angle, 10		; 関節の目標角度
+	; 関節の目標座標
+	ddim ary_jx, 2
+	ddim ary_jy, 2
+	ddim ary_ja, 2
+	; 剛体に与える関節方向の力
+	ddim ary_ang, 2
+
+	; マウス操作用パラメータ
+	flag_drag = 0
+	flag_push = 0
+	pos0_x = 0
+	pos0_y = 0
+	pos1_x = 0
+	pos1_y = 0
+
+	; リセットフラグ
+	flag_reset = 0
+
+	;
+	gravity = 0.005
+
+	; 剛体(人型モデルのパーツ)
+	ary_para_body = 96,20,4,4, 96,28,6,6, 96,35,6,4, 93,43,2,6, 93,53,2,6, 99,43,2,6, 99,53,2,6, 90,30,2,6, 90,36,2,6, 102,30,2,6, 102,36,2,6
+	body_count = e_BODY_NUM
+	; 関節パラメータ
+	ary_joint = e_BODY_KOSHI,e_BODY_MUNE,0,-3,0,4, e_BODY_MUNE,e_BODY_ATAMA,0,-5,0,3, e_BODY_KOSHI,e_BODY_MOMO_R,-3,3,0,-5,e_BODY_MOMO_R,e_BODY_SUNEO_R,0,5,0,-5, e_BODY_KOSHI,e_BODY_MOMO_L,3,3,0,-5,e_BODY_MOMO_L,e_BODY_SUNEO_L,0,5,0,-5, e_BODY_MUNE,e_BODY_JOUWAN_R,-5,-3,0,-5, e_BODY_JOUWAN_R,e_BODY_ZENWAN_R,0,3,0,-3, e_BODY_MUNE,e_BODY_JOUWAN_L,5,-3,0,-5, e_BODY_JOUWAN_L,e_BODY_ZENWAN_L,0,3,0,-3
+	joint_count = e_JOINT_NUM
+
+	; 剛体生成
+	for i, 0, body_count, 1
+		qaddpoly ary_body_id( i ), 4, ary_para_body( ELM_NUM_BODY_PARA * i ), ary_para_body( ELM_NUM_BODY_PARA * i + 1 ), 0, ary_para_body( ELM_NUM_BODY_PARA * i + 2 ), ary_para_body( ELM_NUM_BODY_PARA * i + 3 ), 0, mygroup, mygroup, 0
+	next
+
+	; 関節の初期パラメータを設定
+	for i, 0, joint_count, 1
+		ary_joint_body( 0, i ) = ary_body_id( ary_joint( i * ELM_NUM_JOINT_PARA ) )
+		ary_joint_body( 1, i ) = ary_body_id( ary_joint( i * ELM_NUM_JOINT_PARA + 1 ) )
+		ary_joint_local_X( 0, i ) = ary_joint( i * ELM_NUM_JOINT_PARA + 2 )
+		ary_joint_local_Y( 0, i ) = ary_joint( i * ELM_NUM_JOINT_PARA + 3 )
+		ary_joint_local_X( 1, i ) = ary_joint( i * ELM_NUM_JOINT_PARA + 4 )
+		ary_joint_local_Y( 1, i ) = ary_joint( i * ELM_NUM_JOINT_PARA + 5 )
+;		ary_joint_angle( i ) = 0.0
+	next
+
+	;
+	for i, 0, body_count, 1
+		qpos ary_body_id( i ), ary_para_body( ELM_NUM_BODY_PARA * i ) + adj_x, ary_para_body( ELM_NUM_BODY_PARA * i + 1 ) + adj_y, adj_r
+	next
+
+*main
+	;	メインループ
+	;
+	redraw 0		; 画面の更新を開始
+	gradf ,,,,1,0,128	; 画面クリア
+	qexec			; OBAQによるオブジェクトの更新
+
+	; 重力
+	qgravity 0, gravity
+
+	;後に設定された間接が優先？
+	;とりあえず、IDの大きいものから計算
+	for i, joint_count - 1, -1, -1
+		; 物体A, Bの現在の関節位置
+		for j, 0, 2, 1
+			qgetpos ary_joint_body( j, i ), var_x, var_y, ary_ja( j )
+			org_x = ary_joint_local_X( j, i )
+			org_y = ary_joint_local_Y( j, i )
+			angle = ary_ja( j )
+			lx = cos( angle ) * org_x - sin( angle ) * org_y
+			ly = sin( angle ) * org_x + cos( angle ) * org_y
+			ary_jx( j ) = lx + var_x
+			ary_jy( j ) = ly + var_y
+		next
+
+		; 関節の目標位置
+		new_jx = ( ary_jx( 0 ) + ary_jx( 1 ) ) / 2
+		new_jy = ( ary_jy( 0 ) + ary_jy( 1 ) ) / 2
+		; 関節の目標角度
+		new_ja = ( ary_ja( 0 ) - ary_ja( 1 ) )
+		; 目標角度に近づくための回転速度
+		ang = ( ary_joint_angle( i ) - new_ja ) * 0.01
+		ary_ang( 0 ) = ang
+		ary_ang( 1 ) = - ang
+
+		; 目標角度に近づくように外力を与える
+		; 目標位置に近づくように外力を与える
+		for j, 0, 2, 1
+			force_x = ( new_jx - ary_jx( j ) )
+			force_y = ( new_jy - ary_jy( j ) )
+			id = ary_joint_body( j, i )
+			qgetspeed id, var_px, var_py, var_pr
+			qspeed id, var_px, var_py, ary_ang( j ), 2
+			qpush id, ary_jx( j ), ary_jy( j ), force_x, force_y, 1
+		next
+
+	next
+
+	; オブジェクトの描画
+	qdraw
+	
+	; キーボード入力
+	gosub *myKeyInput
+	; マウス入力
+	gosub *myMouseInput
+	; info
+	gosub *DispInfo
+
+	; サブルーチン内で goto を繰り返すと
+	; Error 29(スタック領域のオーバーフロー)が発生するため、
+	; サブルーチン外で goto する。
+	if( flag_reset == 1 ){
+		goto *init_world
+	}
+
+	redraw 1		; 画面の更新を終了
+	await my_interval		; 一定時間待つ
+
+	goto *main
+
+*myKeyInput
+	stick key,511		; キーの取得
+;	if key&128 : end	; [ESC]キーで終了
+
+	;	カーソルキーで操作
+	; 左
+	if( key&1 ){
+		ary_joint_angle(e_JOINT_KOKANSETSU_R) += 0.05
+		ary_joint_angle(e_JOINT_HIZA_R) -= 0.05
+		ary_joint_angle(e_JOINT_KATA_L) += 0.05
+	}
+	; 右
+	if( key&4 ){
+		ary_joint_angle(e_JOINT_KOKANSETSU_R) -= 0.05
+		ary_joint_angle(e_JOINT_HIZA_R) += 0.05
+		ary_joint_angle(e_JOINT_KATA_L) -= 0.05
+	}
+	; 上
+	if( key&2 ){
+		ary_joint_angle(e_JOINT_KOKANSETSU_L) -= 0.05
+		ary_joint_angle(e_JOINT_HIZA_L) += 0.05
+		ary_joint_angle(e_JOINT_KATA_R) -= 0.05
+	}
+	; 下
+	if( key&8 ){
+		ary_joint_angle(e_JOINT_KOKANSETSU_L) += 0.05
+		ary_joint_angle(e_JOINT_HIZA_L) -= 0.05
+		ary_joint_angle(e_JOINT_KATA_R) += 0.05
+	}
+
+	; space
+	if( key&16 ){
+		for i, 0, joint_count, 1
+			ary_joint_angle( i ) = 0.0
+		next
+	}
+
+	; enter
+	if( key&32 ){
+		if( gravity == 0){
+			gravity = 0.005
+		}
+		else{
+			gravity = 0
+		}
+	}
+	; ESC
+	if( key&128 ){
+		; モデル削除
+		gosub *myDeleteObj
+		; モデルの初期化
+		flag_reset = 1
+	}
+	; ctrl
+	if( key & 64 ){
+		qgetpos id_box, var_x, var_y, var_angle
+		qblast var_x, var_y, 5
+	}
+	return
+
+;
+*myDeleteObj
+	qdel id_seesaw
+	qdel id_box
+	for i, 0, 4, 1
+		qdel ary_id_yuka( i )
+	next
+	for i, 0, body_count, 1
+		qdel ary_body_id( i )
+	next
+	body_count = 0
+	return
+
+*myMouseInput
+	if( key&256 ){
+		if( flag_drag == 0 ){
+			pos0_x = mousex
+			pos0_y = mousey
+			pos1_x = pos0_x
+			pos1_y = pos0_y
+		}
+		else{
+			pos1_x = mousex
+			pos1_y = mousey
+		}
+		flag_drag = 1
+	}
+	else{
+		if( flag_drag == 1 ){
+			flag_push = 1
+		}
+		flag_drag = 0
+	}
+	if( flag_drag == 1 ){
+		color 255,,
+		pos pos0_x, pos0_y
+		line pos1_x, pos1_y
+	}
+	if( flag_push == 1 ){
+		scale_f = -0.5
+		qcnvaxis var0_x, var0_y, pos0_x, pos0_y, 1
+		qcnvaxis var1_x, var1_y, pos1_x, pos1_y, 1
+		force_x = scale_f * ( var0_x - var1_x )
+		force_y = scale_f * ( var0_y - var1_y )
+		qinner res, var0_x ,var0_y
+		if( res ){
+			qpush res, var0_x, var0_y, force_x, force_y, 1
+		}
+	}
+	return
+
+*DispInfo
+	color 0,255,255
+	pos 40, 30
+	mes "(なんちゃって)関節シミュレータ"
+	color 255,255,255
+	pos 40, 60
+	mes "マウス:物体を引っ張る"
+	mes "上下左右:手足を動かす"
+	mes "スペース:関節角度初期化"
+	mes "エンター:重力有無変更"
+	mes "Ctrl:qblast"
+	mes "ESC:リセット"
+
+	return
+
