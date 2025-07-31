@@ -3,6 +3,7 @@
 	screen 0,640,480
 	name="title"
 *main
-	color 255, 123, 45
+	cls 1
+	color 255, 23, 23
 	mes "hsp3dish"
 	stop
