@@ -36,6 +36,8 @@ repeat
 		y+=10
 	loop
 
+	;
+	line 0, 0, mousex, mousey
 
 	redraw 1
 	await 1000/60

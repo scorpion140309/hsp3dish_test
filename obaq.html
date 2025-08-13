@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html">
-    <title>hsp3dish_test - HSP3Dish</title>
+    <title>obaq - HSP3Dish</title>
     <style>
       body {
         font-family: arial;
@@ -173,7 +173,7 @@
           this.totalDependencies = Math.max(this.totalDependencies, left);
           Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
         },
-        arguments: ["hsp3dish_test.ax"]
+        arguments: ["obaq.ax"]
       };
       Module.setStatus('Downloading...');
 
@@ -195,9 +195,9 @@ Module.expectedDataFileDownloads++;
       // worker
       PACKAGE_PATH = encodeURIComponent(location.pathname.toString().substring(0, location.pathname.toString().lastIndexOf('/')) + '/');
     }
-    var PACKAGE_NAME = 'hsp3dish_test.data';
-    var REMOTE_PACKAGE_NAME = (Module['filePackagePrefixURL'] || '') + 'hsp3dish_test.data';
-    var REMOTE_PACKAGE_SIZE = 626;
+    var PACKAGE_NAME = 'obaq.data';
+    var REMOTE_PACKAGE_NAME = (Module['filePackagePrefixURL'] || '') + 'obaq.data';
+    var REMOTE_PACKAGE_SIZE = 866;
     var PACKAGE_UUID = '51f84d03-0c74-4552-ac13-924e79e76977';
   
     function fetchRemotePackage(packageName, packageSize, callback, errback) {
@@ -298,7 +298,7 @@ function assert(check, msg) {
       },
     };
 
-      new DataRequest(0, 626, 0, 0).open('GET', 'hsp3dish_test.ax');
+      new DataRequest(0, 866, 0, 0).open('GET', 'obaq.ax');
 
 
     function processPackageData(arrayBuffer) {
@@ -312,12 +312,12 @@ function assert(check, msg) {
       Module['HEAPU8'].set(byteArray, ptr);
       DataRequest.prototype.byteArray = Module['HEAPU8'].subarray(ptr, ptr+byteArray.length);
 
-          DataRequest.prototype.requests["hsp3dish_test.ax"].onload();
+          DataRequest.prototype.requests["obaq.ax"].onload();
 
-          Module['removeRunDependency']('datafile_hsp3dish_test.data');
+          Module['removeRunDependency']('datafile_obaq.data');
 
     };
-    Module['addRunDependency']('datafile_hsp3dish_test.data');
+    Module['addRunDependency']('datafile_obaq.data');
   
     if (!Module.preloadResults) Module.preloadResults = {};
   
