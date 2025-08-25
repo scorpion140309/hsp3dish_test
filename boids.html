@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html">
-    <title>obaq - HSP3Dish</title>
+    <title>boids - HSP3Dish</title>
     <style>
       body {
         font-family: arial;
@@ -173,7 +173,7 @@
           this.totalDependencies = Math.max(this.totalDependencies, left);
           Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
         },
-        arguments: ["obaq.ax"]
+        arguments: ["boids.ax"]
       };
       Module.setStatus('Downloading...');
 
@@ -195,9 +195,9 @@ Module.expectedDataFileDownloads++;
       // worker
       PACKAGE_PATH = encodeURIComponent(location.pathname.toString().substring(0, location.pathname.toString().lastIndexOf('/')) + '/');
     }
-    var PACKAGE_NAME = 'obaq.data';
-    var REMOTE_PACKAGE_NAME = (Module['filePackagePrefixURL'] || '') + 'obaq.data';
-    var REMOTE_PACKAGE_SIZE = 931;
+    var PACKAGE_NAME = 'boids.data';
+    var REMOTE_PACKAGE_NAME = (Module['filePackagePrefixURL'] || '') + 'boids.data';
+    var REMOTE_PACKAGE_SIZE = 6206;
     var PACKAGE_UUID = '51f84d03-0c74-4552-ac13-924e79e76977';
   
     function fetchRemotePackage(packageName, packageSize, callback, errback) {
@@ -298,7 +298,7 @@ function assert(check, msg) {
       },
     };
 
-      new DataRequest(0, 931, 0, 0).open('GET', 'obaq.ax');
+      new DataRequest(0, 6206, 0, 0).open('GET', 'boids.ax');
 
 
     function processPackageData(arrayBuffer) {
@@ -312,12 +312,12 @@ function assert(check, msg) {
       Module['HEAPU8'].set(byteArray, ptr);
       DataRequest.prototype.byteArray = Module['HEAPU8'].subarray(ptr, ptr+byteArray.length);
 
-          DataRequest.prototype.requests["obaq.ax"].onload();
+          DataRequest.prototype.requests["boids.ax"].onload();
 
-          Module['removeRunDependency']('datafile_obaq.data');
+          Module['removeRunDependency']('datafile_boids.data');
 
     };
-    Module['addRunDependency']('datafile_obaq.data');
+    Module['addRunDependency']('datafile_boids.data');
   
     if (!Module.preloadResults) Module.preloadResults = {};
   

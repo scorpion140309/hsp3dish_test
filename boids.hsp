@@ -1,0 +1,217 @@
+; =========================================
+; Boids 改善版（サブルーチン化＋初期重なり軽減）/ HSP3
+; =========================================
+
+;
+#include "hsp3dish.as"
+
+scrw = 480.0 : scrh = 800.0
+screen 0, int(scrw), int(scrh)
+cls
+
+pi = 3.14159265358979
+
+NUM = 32
+VISION = 30.0
+SEPARATE_R = 20.0
+MAX_SPEED = 2.0
+RANDOMNESS = 0.0005
+
+COHESION_K = 0.02
+ALIGN_K    = 0.05
+SEPARATE_K = 0.5
+
+wallMode = 1   ; 0=wrap, 1=reflect
+running = 1    ; 1=動作中, 0=停止
+
+dimtype bx, vartype("double"), NUM
+dimtype by, vartype("double"), NUM
+dimtype vx, vartype("double"), NUM
+dimtype vy, vartype("double"), NUM
+
+; 前回キー状態
+k_space_old = 0
+k_esc_old = 0
+k_q_old=0 : k_w_old=0 : k_a_old=0 : k_s_old=0
+k_z_old=0 : k_x_old=0 : k_e_old=0 : k_r_old=0
+k_d_old=0 : k_f_old=0 : k_c_old=0 : k_v_old=0
+k_t_old=0 : k_y_old=0 : k_m_old=0
+
+; ===========================
+; 初期化（重なり軽減）
+; ===========================
+randomize
+gridW = int(sqrt(NUM))
+gridH = int((NUM+gridW-1)/gridW)
+cellW = scrw / gridW
+cellH = scrh / gridH
+
+repeat NUM
+    gx = cnt \ gridW
+    gy = cnt / gridW
+    bx(cnt) = double(rnd(int(cellW-20)) + gx*cellW + 10)
+    by(cnt) = double(rnd(int(cellH-20)) + gy*cellH + 10)
+    angle = rnd(pi*2)
+    vx(cnt) = cos(angle)
+    vy(cnt) = sin(angle)
+loop
+
+drawIndex = 0
+
+; ===========================
+; メインループ
+; ===========================
+*main
+    gosub *updateKeys
+
+    redraw 0
+    color 0,0,0 : boxf
+
+    if running=1 { gosub *updateBoids }
+
+    ; Boid描画（三角形固定色）
+    repeat NUM
+        drawIndex = cnt
+        gosub *drawBoid
+    loop
+
+    ; パラメータ表示
+    color 255,255,255
+    pos 10,10
+    mes "Coh:" + COHESION_K + " Align:" + ALIGN_K + " Sep:" + SEPARATE_K
+    pos 10,30
+    mes "Vision:" + VISION + " MaxSp:" + MAX_SPEED
+    pos 10,50
+    mes "SepR:" + SEPARATE_R + " Random:" + RANDOMNESS
+    pos 10,70
+    if wallMode=0 { mes "WallMode: Wrap" } else { mes "WallMode: Reflect" }
+    pos 10,90
+    if running=1 { mes "Running: Yes (Space to Pause)" } else { mes "Running: No (Space to Resume)" }
+
+    redraw 1
+    await 10
+    goto *main
+
+; ===========================
+; キー入力サブルーチン
+; ===========================
+*updateKeys
+    getkey k_space,32
+    if k_space=1 & k_space_old=0 { running = 1 - running }
+    k_space_old = k_space
+
+    getkey k_esc,27
+    if k_esc=1 & k_esc_old=0 { end }
+    k_esc_old = k_esc
+
+    ; パラメータ調整
+    getkey k_q,'Q' : if k_q=1 & k_q_old=0 { COHESION_K+=0.001 } : k_q_old=k_q
+    getkey k_w,'W' : if k_w=1 & k_w_old=0 { COHESION_K-=0.001 : if COHESION_K<0.0{COHESION_K=0.0}} : k_w_old=k_w
+    getkey k_a,'A' : if k_a=1 & k_a_old=0 { ALIGN_K+=0.001 } : k_a_old=k_a
+    getkey k_s,'S' : if k_s=1 & k_s_old=0 { ALIGN_K-=0.001 : if ALIGN_K<0.0{ALIGN_K=0.0}} : k_s_old=k_s
+    getkey k_z,'Z' : if k_z=1 & k_z_old=0 { SEPARATE_K+=0.001 } : k_z_old=k_z
+    getkey k_x,'X' : if k_x=1 & k_x_old=0 { SEPARATE_K-=0.001 : if SEPARATE_K<0.0{SEPARATE_K=0.0}} : k_x_old=k_x
+    getkey k_e,'E' : if k_e=1 & k_e_old=0 { VISION+=5.0 } : k_e_old=k_e
+    getkey k_r,'R' : if k_r=1 & k_r_old=0 { VISION-=5.0 : if VISION<5.0{VISION=5.0}} : k_r_old=k_r
+    getkey k_d,'D' : if k_d=1 & k_d_old=0 { MAX_SPEED+=0.1 } : k_d_old=k_d
+    getkey k_f,'F' : if k_f=1 & k_f_old=0 { MAX_SPEED-=0.1 : if MAX_SPEED<0.1{MAX_SPEED=0.1}} : k_f_old=k_f
+    getkey k_c,'C' : if k_c=1 & k_c_old=0 { SEPARATE_R+=1.0 } : k_c_old=k_c
+    getkey k_v,'V' : if k_v=1 & k_v_old=0 { SEPARATE_R-=1.0 : if SEPARATE_R<1.0{SEPARATE_R=1.0}} : k_v_old=k_v
+    getkey k_t,'T' : if k_t=1 & k_t_old=0 { RANDOMNESS+=0.0005 } : k_t_old=k_t
+    getkey k_y,'Y' : if k_y=1 & k_y_old=0 { RANDOMNESS-=0.0005 : if RANDOMNESS<0.0{RANDOMNESS=0.0}} : k_y_old=k_y
+    getkey k_m,'M' : if k_m=1 & k_m_old=0 { wallMode=1-wallMode } : k_m_old=k_m
+
+	return
+
+; ===========================
+; Boid更新サブルーチン
+; ===========================
+*updateBoids
+    repeat NUM
+        i = cnt
+        sumx=0.0 : sumy=0.0
+        sumvx=0.0 : sumvy=0.0
+        sepX=0.0 : sepY=0.0
+        nCoh=0 : nSep=0
+
+        repeat NUM
+            if cnt=i { continue }
+            dx = bx(cnt)-bx(i)
+            dy = by(cnt)-by(i)
+            d2 = dx*dx+dy*dy
+            if d2=0 { continue }
+
+            if d2 < VISION*VISION {
+                sumx+=bx(cnt) : sumy+=by(cnt)
+                sumvx+=vx(cnt) : sumvy+=vy(cnt)
+                nCoh++
+            }
+
+            if d2 < SEPARATE_R*SEPARATE_R {
+                d = sqrt(d2)
+                if d>0 { sepX += (bx(i)-bx(cnt))/d : sepY += (by(i)-by(cnt))/d : nSep++ }
+            }
+        loop
+
+        ; Cohesion
+        if nCoh>0 {
+            avgx=sumx/nCoh : avgy=sumy/nCoh
+            vx(i)+=(avgx-bx(i))*COHESION_K
+            vy(i)+=(avgy-by(i))*COHESION_K
+            avgvx=sumvx/nCoh : avgvy=sumvy/nCoh
+            vx(i)+=(avgvx-vx(i))*ALIGN_K
+            vy(i)+=(avgvy-vy(i))*ALIGN_K
+        }
+
+        ; Separation
+        if nSep>0 { vx(i)+=sepX*SEPARATE_K : vy(i)+=sepY*SEPARATE_K }
+
+        ; ランダム揺らぎ
+        vx(i)+=double(rnd(200)-100)/100.0*RANDOMNESS
+        vy(i)+=double(rnd(200)-100)/100.0*RANDOMNESS
+
+        ; 速度制限
+        sp = sqrt(vx(i)*vx(i)+vy(i)*vy(i))
+        if sp>MAX_SPEED { vx(i)*=(MAX_SPEED/sp) : vy(i)*=(MAX_SPEED/sp) }
+
+        ; 位置更新
+        bx(i)+=vx(i)
+        by(i)+=vy(i)
+
+        ; 壁処理
+        if wallMode=0 {
+            if bx(i)<0.0 { bx(i)+=scrw }
+            if bx(i)>scrw { bx(i)-=scrw }
+            if by(i)<0.0 { by(i)+=scrh }
+            if by(i)>scrh { by(i)-=scrh }
+        } else {
+            if bx(i)<0.0 { bx(i)=0.0 : vx(i)=-vx(i) }
+            if bx(i)>scrw { bx(i)=scrw : vx(i)=-vx(i) }
+            if by(i)<0.0 { by(i)=0.0 : vy(i)=-vy(i) }
+            if by(i)>scrh { by(i)=scrh : vy(i)=-vy(i) }
+        }
+    loop
+
+	return
+
+; ===========================
+; Boid描画サブルーチン（三角形固定色）
+; ===========================
+*drawBoid
+    i = drawIndex
+    size = 10.0
+    theta = atan(vy(i), vx(i))
+
+    color 255,255,0
+    x0 = bx(i) + cos(theta)*size
+    y0 = by(i) + sin(theta)*size
+    x1 = bx(i) + cos(theta+pi*0.75)*size
+    y1 = by(i) + sin(theta+pi*0.75)*size
+    x2 = bx(i) + cos(theta-pi*0.75)*size
+    y2 = by(i) + sin(theta-pi*0.75)*size
+
+    line x0,y0,x1,y1
+    line x1,y1,x2,y2
+    line x2,y2,x0,y0
+
+	return

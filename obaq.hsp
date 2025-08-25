@@ -10,6 +10,9 @@
 	randomize		; 乱数の初期化
 	screen 0,480,800	; ウィンドウ初期化
 
+	pos 10, 20
+	button gosub "stop", *testsub
+
 	qreset			; OBAQの初期化
 	qgravity 0,0		; 重力なし
 
@@ -41,7 +44,7 @@
 	if key&4 : mr+=0.05
 	qpos my, xx,yy,mr
 
-	if key&(16 + 256) {
+	if key&(16) {
 		qspeed my, cos(mr), sin(mr)
 	}
 
@@ -56,3 +59,7 @@
 	redraw 1		; 画面の更新を終了
 	await 12		; 一定時間待つ
 	goto *main
+
+*testsub
+	qspeed my, 0, 0, 0.05, 2
+	return
