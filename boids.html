@@ -197,7 +197,7 @@ Module.expectedDataFileDownloads++;
     }
     var PACKAGE_NAME = 'boids.data';
     var REMOTE_PACKAGE_NAME = (Module['filePackagePrefixURL'] || '') + 'boids.data';
-    var REMOTE_PACKAGE_SIZE = 6206;
+    var REMOTE_PACKAGE_SIZE = 8453;
     var PACKAGE_UUID = '51f84d03-0c74-4552-ac13-924e79e76977';
   
     function fetchRemotePackage(packageName, packageSize, callback, errback) {
@@ -298,7 +298,7 @@ function assert(check, msg) {
       },
     };
 
-      new DataRequest(0, 6206, 0, 0).open('GET', 'boids.ax');
+      new DataRequest(0, 8453, 0, 0).open('GET', 'boids.ax');
 
 
     function processPackageData(arrayBuffer) {
@@ -329,9 +329,9 @@ function assert(check, msg) {
         fetchedCallback = processPackageData;
       }
     
-        ENV.HSP_WX = "480";//スクリプトの動作解像度
+        ENV.HSP_WX = "640";//スクリプトの動作解像度
         ENV.HSP_WY = "800";
-        ENV.HSP_SX = "480";//表示解像度
+        ENV.HSP_SX = "640";//表示解像度
         ENV.HSP_SY = "800";
         ENV.HSP_AUTOSCALE = "0";//スケーリングモード
         ENV.HSP_FPS = "0";//フレームレート
