@@ -11,8 +11,8 @@
 		separate_r_  	= 40.0
 		cohesion_k_  	= 0.01
 		alignment_k_ 	= 0.08
-		separation_k_	= 0.09
-		maxspeed_		= 5.0
+		separation_k_	= 0.19
+		maxspeed_		= 3.0
 		wallmode_		= 0	; 0=Wrap, 1=Reflect
 		return
 

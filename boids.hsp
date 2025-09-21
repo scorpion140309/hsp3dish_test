@@ -1,9 +1,8 @@
-;
+; boids.hsp
 #include "hsp3dish.as"
-
-;
 #include "BoidParam.as"
 #include "BoidObject.as"
+#include "BoidPlayer.as"
 
 #const NUM_BOIDS 24
 #const SCRW 640.0
@@ -17,6 +16,12 @@ screen 0, int(SCRW), int(SCRH)
 cls
 randomize
 
+; player
+newmod player, BoidPlayer
+setX@BoidPlayer player, double(SCRW/2)
+setY@BoidPlayer player, double(SCRH/2)
+
+; parameters
 newmod param, BoidParam
 
 ; Boid 配列生成
@@ -28,30 +33,45 @@ loop
 repeat NUM_BOIDS
 	setX@BoidObject boids(cnt), double(rnd(SCRW))
 	setY@BoidObject boids(cnt), double(rnd(SCRH))
-	a = double(rnd(628))/100.0
+	a = double(rnd(628)) / 100.0
 	setVX@BoidObject boids(cnt), cos(a)
 	setVY@BoidObject boids(cnt), sin(a)
 loop
 
-; 実行制御・キー押下旧状態（チャタリング防止）
+; 実行制御
 running = 1
+
+; キー入力旧状態（チャタリング防止）
 k_space_old = 0
 k_esc_old   = 0
 k_q_old = 0 : k_w_old = 0 : k_a_old = 0 : k_s_old = 0
 k_z_old = 0 : k_x_old = 0 : k_e_old = 0 : k_r_old = 0
 k_d_old = 0 : k_f_old = 0 : k_c_old = 0 : k_v_old = 0
-k_m_old = 0
+k_m_old = 0 : k_p_old = 0
+k_i_old = 0 : k_o_old = 0
 
-; マウス座標（フレーム毎更新）
-mx = 0.0 : my = 0.0
+; マウス座標（初期は画面中央）
+mx = double(SCRW/2)
+my = double(SCRH/2)
 
 ;----------------------------------------
 ; メインループ
 ;----------------------------------------
 *main
-	; マウス座標を取得（システム変数）
+	; マウス座標更新（システム変数）
 	mx = double(mousex)
 	my = double(mousey)
+
+	; プレイヤーのモジュールに座標を反映
+	setX@BoidPlayer player, mx
+	setY@BoidPlayer player, my
+
+	; マウスがウィンドウ内ならプレイヤー影響を有効、外なら無効
+	if mx >= 0 & mx < SCRW & my >= 0 & my < SCRH {
+		setFlagEnabled@BoidPlayer player, 1
+	} else {
+		setFlagEnabled@BoidPlayer player, 0
+	}
 
 	gosub *updateKeys
 
@@ -65,17 +85,18 @@ mx = 0.0 : my = 0.0
 
 	gosub *drawParams
 	gosub *drawBoids
+	gosub *drawPlayer
 
 	redraw 1
 	await 16
 	goto *main
 
 ;----------------------------------------
-; キー入力サブルーチン（押された瞬間だけ反応）
+; キー入力サブルーチン（押した瞬間だけ反応）
 ;----------------------------------------
 *updateKeys
-	; Space: pause/resume (getkey でもよいが VK スキャン的に stick を併用しない設計で)
-	getkey k_space, 32
+	; Space: pause/resume
+	getkey k_space, ' '
 	if k_space = 1 & k_space_old = 0 {
 		running = 1 - running
 	}
@@ -120,19 +141,16 @@ mx = 0.0 : my = 0.0
 	}
 	k_s_old = k_s
 
-	; Separation K (Z/X)
+	; Player influence radius adjust (Z/X) ? BoidPlayer.addRadius
 	getkey k_z, 'Z'
 	if k_z = 1 & k_z_old = 0 {
-		v = getSeparationK@BoidParam(param) + 0.01
-		setSeparationK@BoidParam param, v
+		addRadius@BoidPlayer player, 10.0
 	}
 	k_z_old = k_z
 
 	getkey k_x, 'X'
 	if k_x = 1 & k_x_old = 0 {
-		v = getSeparationK@BoidParam(param) - 0.01
-		if v < 0.0 { v = 0.0 }
-		setSeparationK@BoidParam param, v
+		addRadius@BoidPlayer player, -10.0
 	}
 	k_x_old = k_x
 
@@ -152,7 +170,7 @@ mx = 0.0 : my = 0.0
 	}
 	k_r_old = k_r
 
-	; MaxSpeed (D/F) -- F 下限は 0.1 にする
+	; MaxSpeed (D/F) -- F 下限 0.1
 	getkey k_d, 'D'
 	if k_d = 1 & k_d_old = 0 {
 		v = getMaxSpeed@BoidParam(param) + 0.1
@@ -168,21 +186,21 @@ mx = 0.0 : my = 0.0
 	}
 	k_f_old = k_f
 
-	; Separate radius (C/V)
-	getkey k_c, 'C'
-	if k_c = 1 & k_c_old = 0 {
-		v = getSeparateR@BoidParam(param) + 1.0
-		setSeparateR@BoidParam param, v
+	; Separation K (I/O)
+	getkey k_i, 'I'
+	if k_i = 1 & k_i_old = 0 {
+		v = getSeparationK@BoidParam(param) + 0.01
+		setSeparationK@BoidParam param, v
 	}
-	k_c_old = k_c
+	k_i_old = k_i
 
-	getkey k_v, 'V'
-	if k_v = 1 & k_v_old = 0 {
-		v = getSeparateR@BoidParam(param) - 1.0
-		if v < 1.0 { v = 1.0 }
-		setSeparateR@BoidParam param, v
+	getkey k_o, 'O'
+	if k_o = 1 & k_o_old = 0 {
+		v = getSeparationK@BoidParam(param) - 0.01
+		if v < 0.0 { v = 0.0 }
+		setSeparationK@BoidParam param, v
 	}
-	k_v_old = k_v
+	k_o_old = k_o
 
 	; Wall mode toggle (M)
 	getkey k_m, 'M'
@@ -191,10 +209,21 @@ mx = 0.0 : my = 0.0
 	}
 	k_m_old = k_m
 
+	; Player mode toggle (P) ? Follow <-> Avoid
+	getkey k_p, 'P'
+	if k_p = 1 & k_p_old = 0 {
+		if getMode@BoidPlayer(player) = 1 {
+			setMode@BoidPlayer player, 2
+		} else {
+			setMode@BoidPlayer player, 1
+		}
+	}
+	k_p_old = k_p
+
 	return
 
 ;----------------------------------------
-; Boid 更新サブルーチン（マウス誘導：左ボタンを getkey で判定）
+; Boid 更新（群行動 + プレイヤー追従/回避）
 ;----------------------------------------
 *updateBoids
 	vision = getVision@BoidParam(param)
@@ -205,8 +234,14 @@ mx = 0.0 : my = 0.0
 	maxSpd = getMaxSpeed@BoidParam(param)
 	wmode  = getWallMode@BoidParam(param)
 
-	; マウス誘導の強さ（必要なら変数化してキーで調整可）
 	mouseK = 0.12
+
+	; プレイヤー情報をローカルに取り出す
+	pradius = getRadius@BoidPlayer(player)
+	pmode = getMode@BoidPlayer(player)
+	px = getX@BoidPlayer(player)
+	py = getY@BoidPlayer(player)
+	pflag = getFlagEnabled@BoidPlayer(player)
 
 	repeat NUM_BOIDS
 		i = cnt
@@ -222,7 +257,7 @@ mx = 0.0 : my = 0.0
 
 		repeat NUM_BOIDS
 			j = cnt
-			if j = i : continue
+			if j = i { continue }
 			x2 = getX@BoidObject(boids(j))
 			y2 = getY@BoidObject(boids(j))
 			vx2 = getVX@BoidObject(boids(j))
@@ -231,7 +266,7 @@ mx = 0.0 : my = 0.0
 			dx = x2 - x
 			dy = y2 - y
 			d2 = dx*dx + dy*dy
-			if d2 = 0.0 : continue
+			if d2 = 0.0 { continue }
 
 			if d2 < vision * vision {
 				sumx += x2 : sumy += y2
@@ -266,15 +301,19 @@ mx = 0.0 : my = 0.0
 			vy += sepy * sepK
 		}
 
-		; マウス誘導 ? 左ボタンを getkey で検出（1 = マウス左ボタン）
-		getkey m_left, 1
-		if m_left = 1 {
-			dx = mx - x
-			dy = my - y
-			dd = sqrt(dx*dx + dy*dy)
-			if dd > 0.0 {
-				vx += (dx / dd) * mouseK
-				vy += (dy / dd) * mouseK
+		; プレイヤー誘導/回避（有効フラグかつ半径内のみ）
+		if pflag != 0 {
+			ddx = px - x
+			ddy = py - y
+			dd = sqrt(ddx*ddx + ddy*ddy)
+			if dd > 0.0 & dd < pradius {
+				if pmode = 1 {
+					vx += (ddx / dd) * mouseK
+					vy += (ddy / dd) * mouseK
+				} else {
+					vx -= (ddx / dd) * mouseK
+					vy -= (ddy / dd) * mouseK
+				}
 			}
 		}
 
@@ -288,17 +327,17 @@ mx = 0.0 : my = 0.0
 		; 位置更新
 		x += vx : y += vy
 
-		; 壁処理
+		; 壁処理（Wrap / Reflect）
 		if wmode = 0 {
-			if x < 0.0	 { x += SCRW }
-			if x >= SCRW  { x -= SCRW }
-			if y < 0.0	 { y += SCRH }
-			if y >= SCRH  { y -= SCRH }
+			if x < 0.0 { x += SCRW }
+			if x >= SCRW { x -= SCRW }
+			if y < 0.0 { y += SCRH }
+			if y >= SCRH { y -= SCRH }
 		} else {
-			if x < 0.0	 { x = 0.0 : vx = -vx }
-			if x > SCRW	 { x = SCRW : vx = -vx }
-			if y < 0.0	 { y = 0.0 : vy = -vy }
-			if y > SCRH	 { y = SCRH : vy = -vy }
+			if x < 0.0 { x = 0.0 : vx = -vx }
+			if x > SCRW { x = SCRW : vx = -vx }
+			if y < 0.0 { y = 0.0 : vy = -vy }
+			if y > SCRH { y = SCRH : vy = -vy }
 		}
 
 		setX@BoidObject boids(i), x
@@ -309,7 +348,7 @@ mx = 0.0 : my = 0.0
 	return
 
 ;----------------------------------------
-; Boid 描画
+; Boid 描画（三角形）
 ;----------------------------------------
 *drawBoids
 	repeat NUM_BOIDS
@@ -321,8 +360,8 @@ mx = 0.0 : my = 0.0
 		ang = atan(vy, vx)
 		size = 6.0
 		x1 = x + cos(ang) * size : y1 = y + sin(ang) * size
-		x2 = x + cos(ang + pi*0.75) * (size*0.5) : y2 = y + sin(ang + pi*0.75) * (size*0.5)
-		x3 = x + cos(ang - pi*0.75) * (size*0.5) : y3 = y + sin(ang - pi*0.75) * (size*0.5)
+		x2 = x + cos(ang + pi*0.75) * (size * 0.5) : y2 = y + sin(ang + pi*0.75) * (size * 0.5)
+		x3 = x + cos(ang - pi*0.75) * (size * 0.5) : y3 = y + sin(ang - pi*0.75) * (size * 0.5)
 
 		color 0,255,255
 		line x1, y1, x2, y2
@@ -332,7 +371,29 @@ mx = 0.0 : my = 0.0
 	return
 
 ;----------------------------------------
-; パラメータ表示サブルーチン
+; プレイヤー描画（中心は塗り、影響範囲は外縁のみ）
+;----------------------------------------
+*drawPlayer
+	px = getX@BoidPlayer(player)
+	py = getY@BoidPlayer(player)
+	pr = getRadius@BoidPlayer(player)
+	pm = getMode@BoidPlayer(player)
+
+	if pm = 1 {
+		color 0,255,0    ; Follow = 緑
+	} else {
+		color 255,0,0    ; Avoid = 赤
+	}
+	circle px-5, py-5, px+5, py+5    ; 塗りの中心表示
+
+	; 影響範囲の外縁のみ描画（第5引数 0）
+	color 255,255,255
+	circle px-pr, py-pr, px+pr, py+pr, 0
+
+	return
+
+;----------------------------------------
+; パラメータ表示
 ;----------------------------------------
 *drawParams
 	color 255,255,255
@@ -359,5 +420,13 @@ mx = 0.0 : my = 0.0
 		mes "Running: Yes (Space to Pause)"
 	} else {
 		mes "Running: No  (Space to Resume)"
+	}
+	pos 10,170
+	mes "PLAYER_RADIUS=" + getRadius@BoidPlayer(player)
+	pos 10,190
+	if getMode@BoidPlayer(player) = 1 {
+		mes "PLAYER_MODE=Follow (P to toggle)"
+	} else {
+		mes "PLAYER_MODE=Avoid (P to toggle)"
 	}
 	return
