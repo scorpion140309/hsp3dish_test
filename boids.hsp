@@ -7,7 +7,7 @@
 #const NUM_BOIDS 24
 #const SCRW 640.0
 #const SCRH 800.0
-pi = 3.14159265358979
+#const MATH_PI 3.14159265358979
 
 ;----------------------------------------
 ; 初期化
@@ -41,6 +41,15 @@ loop
 ; 実行制御
 running = 1
 
+; キー入力状態
+k_space = 0
+k_esc   = 0
+k_q = 0 : k_w = 0 : k_a = 0 : k_s = 0
+k_z = 0 : k_x = 0 : k_e = 0 : k_r = 0
+k_d = 0 : k_f = 0 : k_c = 0 : k_v = 0
+k_m = 0 : k_p = 0
+k_i = 0 : k_o = 0
+
 ; キー入力旧状態（チャタリング防止）
 k_space_old = 0
 k_esc_old   = 0
@@ -58,13 +67,8 @@ my = double(SCRH/2)
 ; メインループ
 ;----------------------------------------
 *main
-	; マウス座標更新（システム変数）
-	mx = double(mousex)
-	my = double(mousey)
-
-	; プレイヤーのモジュールに座標を反映
-	setX@BoidPlayer player, mx
-	setY@BoidPlayer player, my
+	;
+	gosub *updatePlayer
 
 	; マウスがウィンドウ内ならプレイヤー影響を有効、外なら無効
 	if mx >= 0 & mx < SCRW & my >= 0 & my < SCRH {
@@ -90,6 +94,31 @@ my = double(SCRH/2)
 	redraw 1
 	await 16
 	goto *main
+
+;----------------------------------------
+; プレイヤーの位置を更新
+;----------------------------------------
+*updatePlayer
+	s = getInertia@BoidPlayer(player)
+	t = 1.0 - s
+
+	; 現在のプレイヤーの位置
+	oldPlayerX = getX@BoidPlayer(player)
+	oldPlayerY = getY@BoidPlayer(player)
+
+	; マウス座標更新（システム変数）
+	newDistinationX = double(mousex)
+	newDistinationY = double(mousey)
+
+	;
+	newPlayerX = s * oldPlayerX + t * newDistinationX
+	newPlayerY = s * oldPlayerY + t * newDistinationY
+
+	; プレイヤーのモジュールに座標を反映
+	setX@BoidPlayer player, newPlayerX
+	setY@BoidPlayer player, newPlayerY
+
+	return
 
 ;----------------------------------------
 ; キー入力サブルーチン（押した瞬間だけ反応）
@@ -360,8 +389,8 @@ my = double(SCRH/2)
 		ang = atan(vy, vx)
 		size = 6.0
 		x1 = x + cos(ang) * size : y1 = y + sin(ang) * size
-		x2 = x + cos(ang + pi*0.75) * (size * 0.5) : y2 = y + sin(ang + pi*0.75) * (size * 0.5)
-		x3 = x + cos(ang - pi*0.75) * (size * 0.5) : y3 = y + sin(ang - pi*0.75) * (size * 0.5)
+		x2 = x + cos(ang + MATH_PI*0.75) * (size * 0.5) : y2 = y + sin(ang + MATH_PI*0.75) * (size * 0.5)
+		x3 = x + cos(ang - MATH_PI*0.75) * (size * 0.5) : y3 = y + sin(ang - MATH_PI*0.75) * (size * 0.5)
 
 		color 0,255,255
 		line x1, y1, x2, y2

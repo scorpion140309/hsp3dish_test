@@ -5,7 +5,7 @@
 ;----------------------------------------
 ; Boid Player
 ;----------------------------------------
-#module BoidPlayer flag_enabled_, x_, y_, radius_, mode_
+#module BoidPlayer flag_enabled_, x_, y_, radius_, mode_, inertia_
 	#modinit
 		flag_enabled_ = 1
 		x_ = 0.0
@@ -13,6 +13,7 @@
 		radius_ = 200.0
 		; mode_ : 1=Follow, 2=Avoid
 		mode_ = 1
+		inertia_ = 0.9
 		return
 
 	; setter/getterÅilocalÅj
@@ -52,6 +53,12 @@
 		return
 	#modcfunc local getMode
 		return mode_
+
+	#modfunc local setInertia int aInertia
+		inertia_ = aInertia
+		return
+	#modcfunc local getInertia
+		return inertia_
 
 #global
 
