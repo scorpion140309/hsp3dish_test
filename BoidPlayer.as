@@ -11,8 +11,8 @@
 		x_ = 0.0
 		y_ = 0.0
 		radius_ = 200.0
-		; mode_ : 1=Follow, 2=Avoid
-		mode_ = 1
+		; mode_ : 0=Ignore, 1=Follow, 2=Avoid
+		mode_ = 0
 		inertia_ = 0.9
 		return
 
@@ -59,6 +59,21 @@
 		return
 	#modcfunc local getInertia
 		return inertia_
+
+	#modfunc local Update double aDistX, double aDistY
+		; weight
+		s = inertia_
+		t = 1.0 - s
+	
+		; current pos
+		oldPlayerX = x_
+		oldPlayerY = y_
+
+		; new pos
+		x_ = s * oldPlayerX + t * aDistX
+		y_ = s * oldPlayerY + t * aDistY
+	
+		return
 
 #global
 
