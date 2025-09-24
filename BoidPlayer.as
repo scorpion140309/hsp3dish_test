@@ -12,7 +12,7 @@
 		y_ = 0.0
 		radius_ = 200.0
 		; mode_ : 0=Ignore, 1=Follow, 2=Avoid
-		mode_ = 0
+		mode_ = 1
 		inertia_ = 0.9
 		return
 
