@@ -27,12 +27,11 @@
 	line x3, y3, x1, y1
 	return
 
-
-#deffunc local Player var aPlayer, double aSize
+#deffunc local PlayerCore var aPlayer, double aSize
+	pm = getMode@BoidPlayer(aPlayer)
 	px = getX@BoidPlayer(aPlayer)
 	py = getY@BoidPlayer(aPlayer)
 	pr = getRadius@BoidPlayer(aPlayer)
-	pm = getMode@BoidPlayer(aPlayer)
 
 	switch pm
 	col0 = 255
@@ -60,6 +59,14 @@
 	;
 	color 255,255,255
 	circle px-pr, py-pr, px+pr, py+pr, 0
+
+	return
+
+#deffunc local Player var aPlayer, double aSize
+	pm = getMode@BoidPlayer(aPlayer)
+	if pm != 0 {
+		PlayerCore aPlayer, aSize
+	}
 
 	return
 
@@ -104,6 +111,12 @@
 	mes "PLAYER_MODE=" + str_mode + "(P)"
 
 	return
+
+	#deffunc local DrawArrayBoids array aArrayBoids, int aNum, double aSize
+		repeat aNum
+			BoidSingle aArrayBoids(cnt), aSize
+		loop
+		return
 
 #global
 
