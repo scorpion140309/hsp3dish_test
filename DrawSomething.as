@@ -7,7 +7,11 @@
 
 #module Draw
 
+; const
 #const double MATH_PI 3.14159265358979
+
+;
+index = 0
 
 #deffunc local BoidSingle var aBoid, double aSize
 	pi = MATH_PI
@@ -71,34 +75,39 @@
 	return
 
 #deffunc local Information var aParams, var aPlayer, int aFlagRunning
+	MARGIN_MENU_X = 32
+	MARGIN_MENU_Y = 16
+	STEP_MENU_Y = 20
+	pos_y = MARGIN_MENU_Y
+
 	color 255,255,255
-	pos 10,10
+	pos MARGIN_MENU_X, pos_y : pos_y += STEP_MENU_Y
 	mes "VISION=" + double(getVision@BoidParam(aParams))
-	pos 10,30
+	pos MARGIN_MENU_X, pos_y : pos_y += STEP_MENU_Y
 	mes "SEPARATE_R=" + double(getSeparateR@BoidParam(aParams))
-	pos 10,50
+	pos MARGIN_MENU_X, pos_y : pos_y += STEP_MENU_Y
 	mes "COHESION_K=" + double(getCohesionK@BoidParam(aParams))
-	pos 10,70
+	pos MARGIN_MENU_X, pos_y : pos_y += STEP_MENU_Y
 	mes "ALIGNMENT_K=" + double(getAlignmentK@BoidParam(aParams))
-	pos 10,90
+	pos MARGIN_MENU_X, pos_y : pos_y += STEP_MENU_Y
 	mes "SEPARATION_K=" + double(getSeparationK@BoidParam(aParams))
-	pos 10,110
+	pos MARGIN_MENU_X, pos_y : pos_y += STEP_MENU_Y
 	mes "MAXSPEED=" + double(getMaxSpeed@BoidParam(aParams))
-	pos 10,130
+	pos MARGIN_MENU_X, pos_y : pos_y += STEP_MENU_Y
 	if getWallMode@BoidParam(aParams) = 0 {
-		mes "WALLMODE=Wrap (M to toggle)"
+		mes "WALLMODE=Wrap"
 	} else {
-		mes "WALLMODE=Reflect (M to toggle)"
+		mes "WALLMODE=Reflect"
 	}
-	pos 10,150
+	pos MARGIN_MENU_X, pos_y : pos_y += STEP_MENU_Y
 	if aFlagRunning = 1 {
 		mes "Running: Yes (Space to Pause)"
 	} else {
 		mes "Running: No  (Space to Resume)"
 	}
-	pos 10,170
+	pos MARGIN_MENU_X, pos_y : pos_y += STEP_MENU_Y
 	mes "PLAYER_RADIUS=" + getRadius@BoidPlayer(aPlayer)
-	pos 10,190
+	pos MARGIN_MENU_X, pos_y : pos_y += STEP_MENU_Y
 	str_mode = "Ignore"
 	switch getMode@BoidPlayer(aPlayer)
 	case 1
@@ -108,7 +117,14 @@
 		str_mode = "Avoid"
 		swbreak
 	swend
-	mes "PLAYER_MODE=" + str_mode + "(P)"
+	mes "PLAYER_MODE=" + str_mode
+
+	;
+	id = getSelectedId@BoidParam(aParam)
+	cursor_x = 8
+	cursor_y = MARGIN_MENU_Y + id * STEP_MENU_Y
+	pos cursor_x, cursor_y
+	mes ">"
 
 	return
 
@@ -117,7 +133,6 @@
 			BoidSingle aArrayBoids(cnt), aSize
 		loop
 		return
-
 #global
 
 #endif	; __DRAW_SOMETHING__

@@ -7,8 +7,9 @@
 ;----------------------------------------
 #module BoidParam vision_, separate_r_, cohesion_k_, alignment_k_, separation_k_, maxspeed_, wallmode_
 	#modinit
+		selected_id_	= 0
 		vision_	  		= 40.0
-		separate_r_  	= 40.0
+		separate_r_  	= 20.0
 		cohesion_k_  	= 0.01
 		alignment_k_ 	= 0.08
 		separation_k_	= 0.19
@@ -17,6 +18,12 @@
 		return
 
 	; setter/getterÅilocalÅj
+	#modfunc local setSelectedId int aV
+		selected_id_ = aV
+		return
+	#modcfunc local getSelectedId
+		return selected_id_
+
 	#modfunc local setVision double aV
 		vision_ = aV
 		return

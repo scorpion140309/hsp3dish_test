@@ -15,7 +15,6 @@
 	sepK   = getSeparationK@BoidParam(aParam)
 	maxSpd = getMaxSpeed@BoidParam(aParam)
 	wmode  = getWallMode@BoidParam(aParam)
-	logmes "vision=" + vision
 
 	mouseK = 0.12
 
