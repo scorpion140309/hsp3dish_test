@@ -83,7 +83,7 @@
 			vy += sepy * sepK
 		}
 
-		; プレイヤー誘導/回避（有効フラグかつ半径内のみ）
+		; Follow / Avoid the player (only if flag is enabled and within radius)
 		if pflag != 0 {
 			ddx = px - x
 			ddy = py - y
@@ -101,17 +101,17 @@
 			}
 		}
 
-		; 速度制限
+		; max speed
 		sp = sqrt(vx*vx + vy*vy)
 		if sp > maxSpd {
 			vx = vx / sp * maxSpd
 			vy = vy / sp * maxSpd
 		}
 
-		; 位置更新
+		; update (x, y)
 		x += vx : y += vy
 
-		; 壁処理（Wrap / Reflect）
+		; wall（wrap / reflect）
 		if wmode = 0 {
 			if x < 0.0 { x += aScreenW }
 			if x >= aScreenW { x -= aScreenW }

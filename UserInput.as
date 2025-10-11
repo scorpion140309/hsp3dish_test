@@ -18,14 +18,14 @@
 
 #const ID_ITEM_VISION			0
 #const ID_ITEM_SEPARATE_R		1
-#const ID_ITEM_COHESION_K		2
-#const ID_ITEM_ALIGNMENT_K		3
-#const ID_ITEM_SEPARATION_K		4
+#const ID_ITEM_SEPARATION_K		2
+#const ID_ITEM_COHESION_K		3
+#const ID_ITEM_ALIGNMENT_K		4
 #const ID_ITEM_MAX_SPEED		5
 #const ID_ITEM_WALL_MODE		6
-#const ID_ITEM_RUNNING			7
-#const ID_ITEM_PLAYER_RADIUS	8
-#const ID_ITEM_PLAYER_MODE		9
+#const ID_ITEM_PLAYER_RADIUS	7
+#const ID_ITEM_PLAYER_MODE		8
+#const ID_ITEM_RUNNING			9
 
 
 ; ÉLÅ[ì¸óÕèÛë‘
@@ -95,6 +95,14 @@ k_esc_old   = 0
 			setSeparateR@BoidParam aParam, v
 		}
 		swbreak
+	case ID_ITEM_SEPARATION_K
+		v = getSeparationK@BoidParam(aParam)
+		v += input_dir * 0.01
+		if v < 0.0 {
+			v= 0.0
+		}
+		setSeparationK@BoidParam aParam, v
+		swbreak
 	case ID_ITEM_COHESION_K
 		v = getCohesionK@BoidParam(aParam)
 		v += input_dir * 0.01
@@ -110,14 +118,6 @@ k_esc_old   = 0
 			v= 0.0
 		}
 		setAlignmentK@BoidParam aParam, v
-		swbreak
-	case ID_ITEM_SEPARATION_K
-		v = getSeparationK@BoidParam(aParam)
-		v += input_dir * 0.01
-		if v < 0.0 {
-			v= 0.0
-		}
-		setSeparationK@BoidParam aParam, v
 		swbreak
 	case ID_ITEM_MAX_SPEED
 		v = getMaxSpeed@BoidParam(aParam)

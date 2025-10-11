@@ -86,11 +86,11 @@ index = 0
 	pos MARGIN_MENU_X, pos_y : pos_y += STEP_MENU_Y
 	mes "SEPARATE_R=" + double(getSeparateR@BoidParam(aParams))
 	pos MARGIN_MENU_X, pos_y : pos_y += STEP_MENU_Y
+	mes "SEPARATION_K=" + double(getSeparationK@BoidParam(aParams))
+	pos MARGIN_MENU_X, pos_y : pos_y += STEP_MENU_Y
 	mes "COHESION_K=" + double(getCohesionK@BoidParam(aParams))
 	pos MARGIN_MENU_X, pos_y : pos_y += STEP_MENU_Y
 	mes "ALIGNMENT_K=" + double(getAlignmentK@BoidParam(aParams))
-	pos MARGIN_MENU_X, pos_y : pos_y += STEP_MENU_Y
-	mes "SEPARATION_K=" + double(getSeparationK@BoidParam(aParams))
 	pos MARGIN_MENU_X, pos_y : pos_y += STEP_MENU_Y
 	mes "MAXSPEED=" + double(getMaxSpeed@BoidParam(aParams))
 	pos MARGIN_MENU_X, pos_y : pos_y += STEP_MENU_Y
@@ -98,12 +98,6 @@ index = 0
 		mes "WALLMODE=Wrap"
 	} else {
 		mes "WALLMODE=Reflect"
-	}
-	pos MARGIN_MENU_X, pos_y : pos_y += STEP_MENU_Y
-	if aFlagRunning = 1 {
-		mes "Running: Yes (Space to Pause)"
-	} else {
-		mes "Running: No  (Space to Resume)"
 	}
 	pos MARGIN_MENU_X, pos_y : pos_y += STEP_MENU_Y
 	mes "PLAYER_RADIUS=" + getRadius@BoidPlayer(aPlayer)
@@ -118,6 +112,12 @@ index = 0
 		swbreak
 	swend
 	mes "PLAYER_MODE=" + str_mode
+	pos MARGIN_MENU_X, pos_y : pos_y += STEP_MENU_Y
+	if aFlagRunning = 1 {
+		mes "Running: Yes (Space to Pause)"
+	} else {
+		mes "Running: No  (Space to Resume)"
+	}
 
 	;
 	id = getSelectedId@BoidParam(aParam)
