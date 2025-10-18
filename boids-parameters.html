@@ -1,113 +1,279 @@
 <!doctype html>
 <html lang="ja">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Boids パラメータ説明</title>
-<style>
-	body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", Meiryo, sans-serif; line-height:1.6; margin:24px; color:#111; background:#f7f7f7; }
-	h1 { margin-bottom:8px; }
-	.intro { margin-bottom:18px; color:#333; }
-	.card { background:#fff; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.06); padding:16px; margin-bottom:14px; }
-	h2 { margin:0 0 8px 0; font-size:1.05rem; }
-	.param-meta { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:10px; }
-	.meta { background:#eef2ff; color:#1a3a8a; padding:6px 10px; border-radius:6px; font-size:0.9rem; }
-	.tip { background:#fffbe6; border-left:4px solid #ffd43b; padding:10px; margin-top:8px; border-radius:4px; color:#665200; }
-	table { width:100%; border-collapse:collapse; margin-top:8px; }
-	th, td { text-align:left; padding:8px 6px; border-bottom:1px solid #eee; vertical-align:top; }
-	.example { font-family:monospace; background:#f1f5f9; padding:8px; border-radius:6px; display:block; margin-top:8px; }
-	.footer { margin-top:18px; font-size:0.9rem; color:#666; }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Boids パラメータ説明</title>
+
+  <style>
+    /* =======================================
+       カラーテーマ変数定義（WCAG対応）
+    ======================================= */
+    :root {
+      --bg-color: #f9fafb;
+      --text-color: #222;
+      --intro-bg: rgba(255, 255, 255, 0.6);
+      --intro-text: #222;
+      --card-bg: #fff;
+      --heading-color: #1a3a8a;
+      --meta-bg: #eef2ff;
+      --meta-text: #1a3a8a;
+      --tip-bg: #fffbe6;
+      --tip-border: #ffd43b;
+      --tip-text: #665200;
+      --border-color: #e5e7eb;
+      --footer-color: #555;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-color: #121212;
+        --text-color: #e5e5e5;
+        --intro-bg: rgba(255, 255, 255, 0.08);
+        --intro-text: #f1f1f1;
+        --card-bg: #1e1e1e;
+        --heading-color: #82caff;
+        --meta-bg: #2a3b6f;
+        --meta-text: #d4e4ff;
+        --tip-bg: #3a3500;
+        --tip-border: #ffd43b;
+        --tip-text: #ffeaa7;
+        --border-color: #333;
+        --footer-color: #aaa;
+      }
+    }
+
+    /* =======================================
+       ベーススタイル
+    ======================================= */
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+      line-height: 1.7;
+      margin: 0;
+      padding: 2rem;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.8rem;
+      color: var(--heading-color);
+      margin-bottom: 1rem;
+    }
+
+    .intro {
+      max-width: 900px;
+      margin: 0 auto 2rem auto;
+      color: var(--intro-text);
+      background: var(--intro-bg);
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+      border: 1px solid var(--border-color);
+      text-align: justify;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      padding: 1.5rem;
+      margin: 0 auto 1.5rem auto;
+      max-width: 900px;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    h2 {
+      font-size: 1.2rem;
+      margin-top: 0;
+      color: var(--heading-color);
+      border-left: 4px solid var(--heading-color);
+      padding-left: 10px;
+    }
+
+    .param-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 0.6rem;
+    }
+
+    .meta {
+      background: var(--meta-bg);
+      color: var(--meta-text);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.8rem;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 8px 6px;
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: top;
+    }
+
+    th {
+      width: 30%;
+      font-weight: 600;
+    }
+
+    .tip {
+      background: var(--tip-bg);
+      border-left: 4px solid var(--tip-border);
+      padding: 10px;
+      margin-top: 0.8rem;
+      border-radius: 8px;
+      color: var(--tip-text);
+      font-size: 0.95rem;
+    }
+
+    ol {
+      padding-left: 1.4rem;
+      margin-top: 0.5rem;
+    }
+
+    li {
+      margin-bottom: 0.4rem;
+    }
+
+    .footer {
+      margin-top: 1.2rem;
+      font-size: 0.9rem;
+      color: var(--footer-color);
+    }
+
+    /* =======================================
+       レスポンシブ対応
+    ======================================= */
+    @media (max-width: 600px) {
+      body {
+        padding: 1rem;
+        font-size: 16px;
+      }
+
+      .card {
+        padding: 1.2rem;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      h2 {
+        font-size: 1.1rem;
+      }
+
+      .meta {
+        font-size: 0.85rem;
+      }
+
+      table th {
+        width: 40%;
+      }
+    }
+  </style>
 </head>
+
 <body>
-	<h1>Boids シミュレーション — パラメータ説明</h1>
-	<p class="intro">このページは Boids（群れ振る舞い）の主要なチューニング用パラメータについて、分かりやすく説明するものです。各パラメータがシミュレーションに与える影響、典型的な値域、調整時の注意点を記載しています。</p>
+  <h1>Boids シミュレーション — パラメータ説明</h1>
 
-	<div class="card" id="vision">
-		<h2>VISION</h2>
-		<div class="param-meta">
-			<span class="meta">意味：視認半径（影響範囲）</span>
-			<span class="meta">型：実数（ピクセル）</span>
-		</div>
-		<p>ある個体（Boid）が仲間を「認識」して群れの振る舞い（凝集や整列）に影響を受ける距離（半径）です。視認半径より内側にいる他個体を近傍として扱います。</p>
-		<table>
-			<tr><th>典型的な値</th><td>30〜200（環境サイズやBoid密度による）</td></tr>
-			<tr><th>効果</th><td>大きくするとより多くの仲間を参照して滑らかな大規模挙動になる。小さくするとローカルな群れが形成されやすく、小さな塊が分かれやすい。</td></tr>
-			<tr><th>調整のコツ</th><td>密度が低いなら大きめ、密度が高いなら小さめ。視認半径を大きくしすぎると反応が遅く、群れが過度にまとまりやすい。</td></tr>
-		</table>
-		<div class="tip">Tip：視認半径と速度（max speed）を同時に調整すると安定した群れを作りやすいです。</div>
-	</div>
+  <p class="intro">
+    このページは Boids（群れ振る舞い）の主要なチューニング用パラメータについて、分かりやすく説明するものです。各パラメータがシミュレーションに与える影響、典型的な値域、調整時の注意点を記載しています。
+  </p>
 
-	<div class="card" id="separate_r">
-		<h2>SEPARATE_R</h2>
-		<div class="param-meta">
-			<span class="meta">意味：分離（避け）半径</span>
-			<span class="meta">型：実数（ピクセル）</span>
-		</div>
-		<p>衝突回避のために近接していると判断する距離です。ある Boid が他の Boid とこの半径以内に入ると、互いに離れようとする力（分離ベクトル）が働きます。</p>
-		<table>
-			<tr><th>典型的な値</th><td>5〜40（Boid の描画サイズに依存）</td></tr>
-			<tr><th>効果</th><td>大きくすると個体同士がより早く離れ、重なりが減るが群れが荒くなる。小さすぎると重なりや衝突が生じやすい。</td></tr>
-			<tr><th>調整のコツ</th><td>Boid の描画サイズの 1.5〜3 倍程度を初期値にすると見た目の重なりが少なくなる。</td></tr>
-		</table>
-		<div class="tip">Tip：視覚的重なりが気になる時はSEPARATE_Rを最初に増やしてみてください。</div>
-	</div>
+  <div class="card" id="vision">
+    <h2>VISION</h2>
+    <div class="param-meta">
+      <span class="meta">意味：視認半径（影響範囲）</span>
+      <span class="meta">型：実数（ピクセル）</span>
+    </div>
+    <p>ある個体（Boid）が仲間を「認識」して群れの振る舞い（凝集や整列）に影響を受ける距離（半径）です。視認半径より内側にいる他個体を近傍として扱います。</p>
+    <table>
+      <tr><th>典型的な値</th><td>30〜200（環境サイズやBoid密度による）</td></tr>
+      <tr><th>効果</th><td>大きくするとより多くの仲間を参照して滑らかな大規模挙動になる。小さくするとローカルな群れが形成されやすく、小さな塊が分かれやすい。</td></tr>
+      <tr><th>調整のコツ</th><td>密度が低いなら大きめ、密度が高いなら小さめ。視認半径を大きくしすぎると反応が遅く、群れが過度にまとまりやすい。</td></tr>
+    </table>
+    <div class="tip">Tip：視認半径と速度（max speed）を同時に調整すると安定した群れを作りやすいです。</div>
+  </div>
 
-	<div class="card" id="separation_k">
-		<h2>SEPARATION_K</h2>
-		<div class="param-meta">
-			<span class="meta">意味：分離（避け）重み係数</span>
-			<span class="meta">型：実数（倍率）</span>
-		</div>
-		<p>分離ベクトル（近接個体から離れる方向）に掛ける割合を示します。分離の強さを決める係数で、この値が大きいほど強く離れる力が働きます。</p>
-		<table>
-			<tr><th>典型的な値</th><td>0.01〜0.5（アルゴリズムと単位系に依存）</td></tr>
-			<tr><th>効果</th><td>値が大きいと衝突回避が強くなり、個体間の間隔が広がる。値が小さいと衝突回避が弱く、重なりや追突が発生しやすい。</td></tr>
-			<tr><th>調整のコツ</th><td>SEPARATE_R と合わせて調整する。分離が強すぎると群れがまとまらなくなるので徐々に増減して確認する。</td></tr>
-		</table>
-		<div class="tip">Tip：分離の"硬さ"を変えたい場合は、SEPARATION_K を小刻みに変えて挙動を観察してください。</div>
-	</div>
+  <div class="card" id="separate_r">
+    <h2>SEPARATE_R</h2>
+    <div class="param-meta">
+      <span class="meta">意味：分離（避け）半径</span>
+      <span class="meta">型：実数（ピクセル）</span>
+    </div>
+    <p>衝突回避のために近接していると判断する距離です。ある Boid が他の Boid とこの半径以内に入ると、互いに離れようとする力（分離ベクトル）が働きます。</p>
+    <table>
+      <tr><th>典型的な値</th><td>5〜40（Boid の描画サイズに依存）</td></tr>
+      <tr><th>効果</th><td>大きくすると個体同士がより早く離れ、重なりが減るが群れが荒くなる。小さすぎると重なりや衝突が生じやすい。</td></tr>
+      <tr><th>調整のコツ</th><td>Boid の描画サイズの 1.5〜3 倍程度を初期値にすると見た目の重なりが少なくなる。</td></tr>
+    </table>
+    <div class="tip">Tip：視覚的重なりが気になる時はSEPARATE_Rを最初に増やしてみてください。</div>
+  </div>
 
-	<div class="card" id="cohesion_k">
-		<h2>COHESION_K</h2>
-		<div class="param-meta">
-			<span class="meta">意味：凝集（群れの中心へ引き寄せる）重み係数</span>
-			<span class="meta">型：実数（倍率）</span>
-		</div>
-		<p>個体が近傍の仲間の位置の平均（群れの重心）に近づくように働く力の強さを決める係数です。群れのまとまり（中心へ集まる傾向）を制御します。</p>
-		<table>
-			<tr><th>典型的な値</th><td>0.001〜0.05</td></tr>
-			<tr><th>効果</th><td>値が大きいと個体はより早く群れの中心に向かう。小さいと群れが分散しやすく、まとまりが弱くなる。</td></tr>
-			<tr><th>調整のコツ</th><td>ALIGNMENT_K（整列）とバランスを取る。凝集が強すぎると全体が一点に集まるような不自然さを生むことがある。</td></tr>
-		</table>
-		<div class="tip">Tip：COHESION_K を微小値から試し、群れの「まとまり具合」を見ながら上げていくと安定します。</div>
-	</div>
+  <div class="card" id="separation_k">
+    <h2>SEPARATION_K</h2>
+    <div class="param-meta">
+      <span class="meta">意味：分離（避け）重み係数</span>
+      <span class="meta">型：実数（倍率）</span>
+    </div>
+    <p>分離ベクトル（近接個体から離れる方向）に掛ける割合を示します。分離の強さを決める係数で、この値が大きいほど強く離れる力が働きます。</p>
+    <table>
+      <tr><th>典型的な値</th><td>0.01〜0.5（アルゴリズムと単位系に依存）</td></tr>
+      <tr><th>効果</th><td>値が大きいと衝突回避が強くなり、個体間の間隔が広がる。値が小さいと衝突回避が弱く、重なりや追突が発生しやすい。</td></tr>
+      <tr><th>調整のコツ</th><td>SEPARATE_R と合わせて調整する。分離が強すぎると群れがまとまらなくなるので徐々に増減して確認する。</td></tr>
+    </table>
+    <div class="tip">Tip：分離の"硬さ"を変えたい場合は、SEPARATION_K を小刻みに変えて挙動を観察してください。</div>
+  </div>
 
-	<div class="card" id="alignment_k">
-		<h2>ALIGNMENT_K</h2>
-		<div class="param-meta">
-			<span class="meta">意味：整列（向きを揃える）重み係数</span>
-			<span class="meta">型：実数（倍率）</span>
-		</div>
-		<p>近傍の仲間の平均速度（向き）に自分の速度を近づける（向きを揃える）強さを制御する係数です。群れの滑らかな同方向移動を生みます。</p>
-		<table>
-			<tr><th>典型的な値</th><td>0.01〜0.2</td></tr>
-			<tr><th>効果</th><td>値が大きいほど個体は仲間と同じ方向に揃いやすく、整った流れができる。小さいと個体ごとの向きのばらつきが残る。</td></tr>
-			<tr><th>調整のコツ</th><td>COHESION_K と合わせて調整する。高い整列と低い凝集で「流れる帯」のような群れ、逆に高い凝集で塊になる傾向が出る。</td></tr>
-		</table>
-		<div class="tip">Tip：速度（max speed）や視認半径と一緒に調整すると、より自然な群れにできます。</div>
-	</div>
+  <div class="card" id="cohesion_k">
+    <h2>COHESION_K</h2>
+    <div class="param-meta">
+      <span class="meta">意味：凝集（群れの中心へ引き寄せる）重み係数</span>
+      <span class="meta">型：実数（倍率）</span>
+    </div>
+    <p>個体が近傍の仲間の位置の平均（群れの重心）に近づくように働く力の強さを決める係数です。群れのまとまり（中心へ集まる傾向）を制御します。</p>
+    <table>
+      <tr><th>典型的な値</th><td>0.001〜0.05</td></tr>
+      <tr><th>効果</th><td>値が大きいと個体はより早く群れの中心に向かう。小さいと群れが分散しやすく、まとまりが弱くなる。</td></tr>
+      <tr><th>調整のコツ</th><td>ALIGNMENT_K（整列）とバランスを取る。凝集が強すぎると全体が一点に集まるような不自然さを生むことがある。</td></tr>
+    </table>
+    <div class="tip">Tip：COHESION_K を微小値から試し、群れの「まとまり具合」を見ながら上げていくと安定します。</div>
+  </div>
 
-	<div class="card">
-		<h2>まとめ（調整ワークフロー）</h2>
-		<ol>
-			<li>まず Boid 数や画面サイズ、Boid 表示サイズを決める。</li>
-			<li>視認半径（VISION）を環境スケールに合わせて設定（密度に応じて増減）。</li>
-			<li>分離半径（SEPARATE_R）を Boid の見た目に合わせて設定。重なりが気になれば増やす。</li>
-			<li>COHESION_K（まとまり）と ALIGNMENT_K（向き揃え）を調和させる。まず小さめで試し、徐々に増やす。</li>
-			<li>SEPARATION_K で衝突回避の強さを調整。見た目の間隔を見ながら増減。</li>
-		</ol>
-		<p class="footer">各値は環境・単位系・速度制限（max speed）に依存します。小さな変化が大きな挙動差を生むので、1 回に小さく変えて挙動を確認するのが安全です。</p>
-	</div>
+  <div class="card" id="alignment_k">
+    <h2>ALIGNMENT_K</h2>
+    <div class="param-meta">
+      <span class="meta">意味：整列（向きを揃える）重み係数</span>
+      <span class="meta">型：実数（倍率）</span>
+    </div>
+    <p>近傍の仲間の平均速度（向き）に自分の速度を近づける（向きを揃える）強さを制御する係数です。群れの滑らかな同方向移動を生みます。</p>
+    <table>
+      <tr><th>典型的な値</th><td>0.01〜0.2</td></tr>
+      <tr><th>効果</th><td>値が大きいほど個体は仲間と同じ方向に揃いやすく、整った流れができる。小さいと個体ごとの向きのばらつきが残る。</td></tr>
+      <tr><th>調整のコツ</th><td>COHESION_K と合わせて調整する。高い整列と低い凝集で「流れる帯」のような群れ、逆に高い凝集で塊になる傾向が出る。</td></tr>
+    </table>
+    <div class="tip">Tip：速度（max speed）や視認半径と一緒に調整すると、より自然な群れにできます。</div>
+  </div>
+
+  <div class="card">
+    <h2>まとめ（調整ワークフロー）</h2>
+    <ol>
+      <li>まず Boid 数や画面サイズ、Boid 表示サイズを決める。</li>
+      <li>視認半径（VISION）を環境スケールに合わせて設定（密度に応じて増減）。</li>
+      <li>分離半径（SEPARATE_R）を Boid の見た目に合わせて設定。重なりが気になれば増やす。</li>
+      <li>COHESION_K（まとまり）と ALIGNMENT_K（向き揃え）を調和させる。まず小さめで試し、徐々に増やす。</li>
+      <li>SEPARATION_K で衝突回避の強さを調整。見た目の間隔を見ながら増減。</li>
+    </ol>
+    <p class="footer">各値は環境・単位系・速度制限（max speed）に依存します。小さな変化が大きな挙動差を生むので、1 回に小さく変えて挙動を確認するのが安全です。</p>
+  </div>
 </body>
 </html>
